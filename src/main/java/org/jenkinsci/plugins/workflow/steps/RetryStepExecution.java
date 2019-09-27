@@ -92,7 +92,7 @@ public class RetryStepExecution extends AbstractStepExecutionImpl {
         try {
             TaskListener l = getContext().get(TaskListener.class);
             if(step.left>0) {
-                long delay = step.getUnit().toMillis(step.getTimeDelay());
+                long delay = step.getDelay().computeRetryDelay();
                 l.getLogger().println(
                     "Will try again after " + 
                     Util.getTimeSpanString(delay));
@@ -125,8 +125,8 @@ public class RetryStepExecution extends AbstractStepExecutionImpl {
         } else if (task.isCancelled()) {
             return "scheduled task was cancelled";
         } else {
-            return "waiting to rerun; next recurrence period: " + 
-                step.getUnit().toMillis(step.getTimeDelay()) + "ms";
+            return "waiting to rerun; next recurrence period will be calculated ms " +
+                "during the next run." ;
         }
     }
 
@@ -176,7 +176,7 @@ public class RetryStepExecution extends AbstractStepExecutionImpl {
                     } else {
                         Functions.printStackTrace(t, l.error("Execution failed"));
                     }
-                    if(step != null && !step.isUseTimeDelay()) {
+                    if(step != null && !step.isUseRetryDelay()) {
                         l.getLogger().println("Retrying");
                         context.newBodyInvoker().withCallback(this).start();
                     } else {
